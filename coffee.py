@@ -2,7 +2,6 @@
 Authors: Austin and Natalie
 Purpose: Happy birthday Josh! 
 """
-
 import random
 import argparse
 import json
@@ -26,41 +25,86 @@ def generateCoffee(temperature):
                     coffee["coldCoffeeType"]["cold brew"], coffee["coldCoffeeType"]["iced coffee"]]
     
   if temperature == "hot":
-    print("The {} beverage you should order today is a {} {}".format(temperature, random.choices(syrups, weights=syrupsProbs), random.choices(hotCoffeeType, weights=hotCoffeeProbs)))
+    print("The {} beverage you should order today is a {} {}".format(temperature, random.choices(syrups, weights=syrupsProbs)[0], random.choices(hotCoffeeType, weights=hotCoffeeProbs)[0]))
   elif temperature == "cold":
-    print("The {} beverage you should order today is a {} {}".format(temperature, random.choices(syrups, weights=syrupsProbs), random.choices(coldCoffeeType, weights=coldCoffeeProbs)))
+    print("The {} beverage you should order today is a {} {}".format(temperature, random.choices(syrups, weights=syrupsProbs)[0], random.choices(coldCoffeeType, weights=coldCoffeeProbs)[0]))
   else:
     user_input = input("Whoops didn't recognize that, please try again (hot/cold) ")
     generateCoffee(user_input)
-     
 
-
-
-def rescaleProbs():
-    with open("./orderProb.json", "r") as json_file:
-      coffee = json.load(json_file)
+def rescaleProbs(syrup : str, coffeeType : str) -> None:
+  # Open the order probability
+  with open("./orderProb.json", "r") as json_file:
+    coffee = json.load(json_file)
     
-  # Extract syrups dictionary from data
-    sProbs = coffee.get("syrups", {}) 
-    # Calculate the sum of all syrup weights
-    total_weight = sum(sProbs.values())
-    # Normalize the syrup weights to sum up to 1
-    normalized_syrups = {syrup: weight / total_weight for syrup, weight in sProbs.items()}
-    # Update the data with normalized syrup weights
-    sProbs["syrups"] = normalized_syrups
-    
-  # Extract syrups dictionary from data
-    hProbs = coffee.get("hotCoffeeType", {}) 
-    # Calculate the sum of all syrup weights
-    total_weight = sum(hProbs.values())
-    # Normalize the syrup weights to sum up to 1
-    normalized_syrups = {syrup: weight / total_weight for syrup, weight in hProbs.items()}
-    # Update the data with normalized syrup weights
-    hProbs["hotCoffeeType"] = normalized_syrups
+    # finding the favorite syrup
+    for key in coffee["syrups"].keys():
+      if compare(key, syrup):
+        coffee["syrups"][key] += 0.20
+        break
+    else:
+      # Get new user input if mispelled and run again
+      user_input = input("Whoops, that name isn't in our database. Make sure you've spelled it correctly and try again: ")
+      newSyrup, newCoffee = splitString(user_input)
+      rescaleProbs(newSyrup, newCoffee)
+
+    # Checking if it is a hot coffee
+    for key in coffee["hotCoffeeType"].keys(): 
+      if compare(key, coffeeType):
+        coffee["hotCoffeeType"][key] += 0.20
+        break
+    else:
+      # Checking if it is a cold coffee
+      for key in coffee["coldCoffeeType"].keys(): 
+        if compare(key, coffeeType):
+          coffee["coldCoffeeType"][key] += 0.20
+          break
+      else:
+        # Get new user input if mispelled and run again
+        user_input = input("Whoops, that name isn't in our drink list. Make sure you've spelled it correctly and try again: ")
+        newSyrup, newCoffee = splitString(user_input)
+        rescaleProbs(newSyrup, newCoffee)
+
+    ## rescale the probs to equal 1
+    for key in coffee.keys():
+    # Extract syrups dictionary from data
+      probs = coffee.get(key, {}) 
+      # Calculate the sum of all syrup weights
+      total_weight = sum(probs.values())
+      # Normalize the syrup weights to sum up to 1
+      normalized_syrups = {syrup: round(weight / total_weight, ndigits=3) for syrup, weight in probs.items()}
+      # Update the data with normalized syrup weights
+      coffee[key] = normalized_syrups
     
     with open("./orderProb.json", "w") as json_file:
       json.dump(coffee, json_file, indent=2)
 
+def compare(first : str, second : str):
+  """
+  Little helper function to compare strings.
+  
+  args:
+      first (str): first string.
+      second (str): second string.
+  """
+  
+  return first.replace(" ", "").lower() == second.replace(" ", "").lower()
+
+def splitString(text):
+  """Function to split a string with syrup and coffee type into separate strings
+
+  Args:
+      text (string): user input string with syrup first and coffee type next
+
+  Returns:
+      syrup, coffee
+  """
+  try:
+    idx = text.index(" ")
+    return text[:idx], text[idx+1:]
+  except:
+    user_input = input("{} is an invalid entry, please use form '<syrup> <coffee>'. Try again: ".format(text))
+    return splitString(user_input)
 
 def main():
   
@@ -96,7 +140,8 @@ def main():
         return
     
   elif args.favorite:
-    rescaleProbs()
+    syrup, coffee = splitString(args.favorite)
+    rescaleProbs(syrup, coffee)
     return
   else:
     while True:
