@@ -17,13 +17,10 @@ def generateCoffee(temperature):
     coffee = json.load(json_file)
    
   # Get the probability of choosing particular drinks 
-  syrupsProbs = [coffee["syrups"]["hazelnut"], coffee["syrups"]["lavender"],
-                coffee["syrups"]["vanilla"], coffee["syrups"]["caramel"]]
-  hotCoffeeProbs = [coffee["hotCoffeeType"]["latte"], coffee["hotCoffeeType"]["americano"],
-                    coffee["hotCoffeeType"]["cappuccino"], coffee["hotCoffeeType"]["black coffee"]]
-  coldCoffeeProbs = [coffee["coldCoffeeType"]["iced latte"], coffee["coldCoffeeType"]["iced americano"],
-                    coffee["coldCoffeeType"]["cold brew"], coffee["coldCoffeeType"]["iced coffee"]]
-    
+  syrupsProbs = coffee.get("syrups", {}).values()
+  hotCoffeeProbs = coffee.get("hotCoffeeType", {}).values()
+  coldCoffeeProbs = coffee.get("coldCoffeeType", {}).values()
+  
   if temperature == "hot":
     print("The {} beverage you should order today is a {} {}".format(temperature, random.choices(syrups, weights=syrupsProbs)[0], random.choices(hotCoffeeType, weights=hotCoffeeProbs)[0]))
   elif temperature == "cold":
