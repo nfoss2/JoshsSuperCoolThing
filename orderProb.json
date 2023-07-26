@@ -1,0 +1,20 @@
+{
+  "syrups": {
+    "hazelnut": 0.25,
+    "lavender": 0.25,
+    "vanilla": 0.25,
+    "caramel": 0.25
+  },
+  "hotCoffeeType": {
+    "latte": 0.25,
+    "americano": 0.25,
+    "cappuccino": 0.25,
+    "black coffee": 0.25
+  },
+  "coldCoffeeType": {
+    "iced latte": 0.25,
+    "iced americano": 0.25,
+    "cold brew": 0.25,
+    "iced coffee": 0.25
+  }
+}
